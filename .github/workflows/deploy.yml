@@ -1,38 +1,31 @@
 name: Deploy Flask App to EC2
 
 on:
-push:
-branches:
-- master
+  push:
+    branches:
+      - master
 
 jobs:
-deploy:
-runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest
 
-```
-steps:
-- name: Checkout repository
-  uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-- name: Create SSH key
-  run: |
-    mkdir -p ~/.ssh
-    echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/devops.pem
-    chmod 600 ~/.ssh/devops.pem
+      - name: Create SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/devops.pem
+          chmod 600 ~/.ssh/devops.pem
 
-- name: Connect and Deploy
-  run: |
-    ssh -o StrictHostKeyChecking=no -i ~/.ssh/devops.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-    
-    cd devops-flask-project
-
-    git pull
-
-    docker stop flask-container || true
-    docker rm flask-container || true
-
-    docker build -t flask-app .
-    docker run -d -p 80:5000 --name flask-container flask-app
-
-    EOF
-```
+      - name: Connect and Deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/devops.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          cd ~/devops-flask-project
+          git pull
+          docker stop flask-container || true
+          docker rm flask-container || true
+          docker build -t flask-app .
+          docker run -d -p 80:5000 --name flask-container flask-app
+          EOF
